@@ -399,15 +399,6 @@ export default function NotebookApp() {
                 roots={roots}
                 childrenOf={childrenOf}
                 onOpen={(id) => void select(id)}
-                onAdd={(name) =>
-                  addNode(null, name).then(
-                    () => true,
-                    (e) => {
-                      report(e);
-                      return false;
-                    },
-                  )
-                }
               />
             ) : (
               <NodePage
@@ -488,22 +479,11 @@ function Home({
   roots,
   childrenOf,
   onOpen,
-  onAdd,
 }: {
   roots: TreeNode[];
   childrenOf: Map<string | null, TreeNode[]>;
   onOpen: (id: string) => void;
-  onAdd: (name: string) => Promise<boolean>;
 }) {
-  const total = roots.reduce(
-    (acc, r) => {
-      const mids = childrenOf.get(r.id) ?? [];
-      acc.mid += mids.length;
-      acc.small += mids.reduce((s, m) => s + (childrenOf.get(m.id)?.length ?? 0), 0);
-      return acc;
-    },
-    { mid: 0, small: 0 },
-  );
   return (
     <section>
       <div className="page-head">
@@ -511,21 +491,6 @@ function Home({
           <p className="eyebrow">Overview</p>
           <h1 className="page-title">總覽</h1>
           <p className="page-desc">選擇一個大類開始；每個大類、中類、小分類都可以撰寫筆記並貼上圖片。</p>
-        </div>
-      </div>
-
-      <div className="stats">
-        <div className="stat">
-          <span className="stat-num">{roots.length}</span>
-          <span className="stat-label">大類</span>
-        </div>
-        <div className="stat">
-          <span className="stat-num">{total.mid}</span>
-          <span className="stat-label">中類</span>
-        </div>
-        <div className="stat">
-          <span className="stat-num">{total.small}</span>
-          <span className="stat-label">小分類</span>
         </div>
       </div>
 
@@ -551,10 +516,12 @@ function Home({
         })}
       </div>
 
-      <div className="panel add-panel">
-        <h3 className="panel-title">新增大類</h3>
-        <AddInline label="新增" placeholder="輸入大類名稱，例如：業務開發" onAdd={onAdd} />
-      </div>
+      <figure className="motto">
+        <blockquote>
+          <p>謝謝今天也願意停下來，為自己寫下一點什麼的你。</p>
+          <p>那些溫柔的累積，終會讓你更懂這份工作，也更喜歡現在的自己。</p>
+        </blockquote>
+      </figure>
     </section>
   );
 }

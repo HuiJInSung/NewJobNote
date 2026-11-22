@@ -269,6 +269,18 @@ button.twisty:hover { color: var(--ink); }
 .cat-arrow { color: var(--border-strong); font-size: 18px; transition: transform .2s, color .2s; }
 .add-panel .add-form { max-width: 600px; }
 
+.motto { margin: 8px 0 28px; padding: 0; text-align: left; background: none; border: 0; box-shadow: none; }
+.motto blockquote {
+  display: inline-block; text-align: left;
+  margin: 0; padding: 0; background: none; border: 0;
+  font-family: var(--font-hand), "DFKai-SB", "BiauKai", cursive;
+  font-size: 24px; line-height: 1.4; letter-spacing: .03em; color: #2457a6;
+}
+.motto blockquote p { margin: 0; }
+@media (max-width: 640px) {
+  .motto blockquote { font-size: 18px; }
+}
+
 /* editor */
 .note-panel { padding-bottom: 18px; }
 .editor { position: relative; }
