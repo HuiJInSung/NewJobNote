@@ -41,7 +41,7 @@ const GOLD_2 = "C7A571";
 const BORDER = "E8E3DA";
 const BORDER_STRONG = "D6CFC2";
 const SURFACE_2 = "FAF8F5";
-const MARK = "F3E3BC";
+const MARK = "FDF0B8";
 
 const FONT = { ascii: FONT_NAME, eastAsia: FONT_NAME, hAnsi: FONT_NAME, cs: FONT_NAME };
 const half = (pt: number) => Math.round(pt * 2);
@@ -507,12 +507,13 @@ export async function buildDocx(tree: ExportNode[], meta: ExportMeta): Promise<B
     creator: "工作學習筆記",
     styles: {
       default: {
+        // noProof: Word skips spelling / grammar checks, so edited text gets no wavy underlines
         document: {
-          run: { font: FONT, size: half(BASE_PT), color: TEXT },
+          run: { font: FONT, noProof: true, size: half(BASE_PT), color: TEXT },
           paragraph: { spacing: { ...LINE } },
         },
         heading1: {
-          run: { font: FONT, size: half(24), bold: true, color: INK },
+          run: { font: FONT, noProof: true, size: half(24), bold: true, color: INK },
           paragraph: {
             spacing: { before: 0, after: 280, ...LINE },
             border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: GOLD_2, space: 6 } },
@@ -520,7 +521,7 @@ export async function buildDocx(tree: ExportNode[], meta: ExportMeta): Promise<B
           },
         },
         heading2: {
-          run: { font: FONT, size: half(19), bold: true, color: INK },
+          run: { font: FONT, noProof: true, size: half(19), bold: true, color: INK },
           paragraph: {
             spacing: { before: 480, after: 200, ...LINE },
             indent: { left: 200 },
@@ -529,7 +530,7 @@ export async function buildDocx(tree: ExportNode[], meta: ExportMeta): Promise<B
           },
         },
         heading3: {
-          run: { font: FONT, size: half(16), bold: true, color: INK_2 },
+          run: { font: FONT, noProof: true, size: half(16), bold: true, color: INK_2 },
           paragraph: { spacing: { before: 400, after: 160, ...LINE }, keepNext: true },
         },
       },
@@ -539,7 +540,7 @@ export async function buildDocx(tree: ExportNode[], meta: ExportMeta): Promise<B
           name: "筆記大標題",
           basedOn: "Normal",
           next: "Normal",
-          run: { font: FONT, size: half(BASE_PT * 1.5), bold: true, color: INK },
+          run: { font: FONT, noProof: true, size: half(BASE_PT * 1.5), bold: true, color: INK },
           paragraph: {
             spacing: { before: 520, after: 220, ...LINE },
             border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER, space: 4 } },
@@ -551,7 +552,7 @@ export async function buildDocx(tree: ExportNode[], meta: ExportMeta): Promise<B
           name: "筆記小標題",
           basedOn: "Normal",
           next: "Normal",
-          run: { font: FONT, size: half(BASE_PT * 1.2), bold: true, color: INK },
+          run: { font: FONT, noProof: true, size: half(BASE_PT * 1.2), bold: true, color: INK },
           paragraph: {
             spacing: { before: 400, after: 120, ...LINE },
             indent: { left: 200 },
@@ -564,7 +565,7 @@ export async function buildDocx(tree: ExportNode[], meta: ExportMeta): Promise<B
           name: "筆記標題 4",
           basedOn: "Normal",
           next: "Normal",
-          run: { font: FONT, size: half(BASE_PT * 1.02), bold: true },
+          run: { font: FONT, noProof: true, size: half(BASE_PT * 1.02), bold: true },
           paragraph: { spacing: { before: 300, after: 80 }, keepNext: true },
         },
       ],

@@ -88,6 +88,14 @@ function safeStyle(el: Element, tag: string): string {
   return out.join("; ");
 }
 
+/** The 「標記」 button's color (browsers report it as rgb(253, 230, 138)). */
+export const HIGHLIGHT_COLOR = "#fde68a";
+
+function isToolbarHighlight(el: Element): boolean {
+  const bg = ((el as HTMLElement).style?.backgroundColor ?? "").replace(/\s+/g, "").toLowerCase();
+  return bg === "rgb(253,230,138)" || bg === HIGHLIGHT_COLOR;
+}
+
 function safeImgSrc(src: string): boolean {
   return /^\/api\/images\/[0-9a-f]{24}$/i.test(src) || /^https?:\/\//i.test(src);
 }
@@ -107,8 +115,9 @@ function clean(node: Node, doc: Document) {
     }
     if (tag === "H1") tag = "H2";
     if (tag === "H5" || tag === "H6") tag = "H4";
-    // highlight from the toolbar (execCommand hiliteColor) arrives as a styled span
-    if (tag === "SPAN" && /background(-color)?\s*:\s*(?!transparent|initial|inherit|rgba\(0, 0, 0, 0\))/i.test(el.getAttribute("style") ?? "")) {
+    // highlight from the toolbar (execCommand hiliteColor) arrives as a styled span. Only that exact color counts:
+    // other backgrounds (pasted text, spans the browser adds when lines merge) must not turn into highlights.
+    if (tag === "SPAN" && isToolbarHighlight(el)) {
       tag = "MARK";
     }
     let style = "";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { sanitizeHtml, htmlHasText, normalizeFonts, fontMarker } from "@/lib/sanitize";
+import { sanitizeHtml, htmlHasText, normalizeFonts, fontMarker, HIGHLIGHT_COLOR } from "@/lib/sanitize";
 import { uploadImage } from "@/lib/images";
 
 type Props = {
@@ -20,7 +20,7 @@ const INLINE: Tool[] = [
   { label: "I", title: "斜體 (Ctrl+I)", cmd: "italic", cls: "i" },
   { label: "U", title: "底線 (Ctrl+U)", cmd: "underline", cls: "u" },
   { label: "S", title: "刪除線", cmd: "strikeThrough", cls: "s" },
-  { label: "標記", title: "螢光標記", cmd: "hiliteColor", value: "#fde68a" },
+  { label: "標記", title: "螢光標記", cmd: "hiliteColor", value: HIGHLIGHT_COLOR },
 ];
 const BLOCKS: Tool[] = [
   { label: "H1 標題", title: "大標題", cmd: "formatBlock", value: "<h2>" },

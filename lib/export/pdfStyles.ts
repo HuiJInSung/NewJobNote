@@ -46,7 +46,7 @@ body {
 .note li::marker { color: #a98450; }
 .note hr { border: 0; height: 1px; background: #c7a571; margin: 1.6em 0; }
 .note a { color: #0f1a2b; text-decoration: underline; text-decoration-color: #a98450; }
-.note mark { background: linear-gradient(transparent 55%, rgba(231, 205, 150, .75) 55%); color: inherit; padding: 0 2px; }
+.note mark { background: #fdf0b8; color: inherit; padding: 0 2px; border-radius: 2px; }
 .note code, .note pre { font-size: .88em; background: #faf8f5; border: 1px solid #e8e3da; border-radius: 4px; padding: 0 5px; }
 .note pre { padding: 10pt 14pt; white-space: pre-wrap; }
 .note table { width: 100%; border-collapse: collapse; margin: 1.2em 0; font-size: .95em; }
