@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* jf open 粉圓 2.1 (SIL OFL, see public/fonts/jf-openhuninn-OFL.txt) for all text.
+   Uses the copy installed on the computer when there is one, otherwise downloads it. */
+@font-face {
+  font-family: "jf-openhuninn";
+  src: local("jf open 粉圓 2.1"), local("jf-openhuninn-2.1"), url("/fonts/jf-openhuninn-2.1.ttf") format("truetype");
+  font-display: swap;
+}
+
 /* ==========================================================
    商業專業高級風格 — Premium business theme
    Ink navy · champagne gold · serif display · ivory canvas
@@ -35,8 +43,8 @@
   --shadow: 0 1px 2px rgba(20, 22, 28, .04), 0 8px 24px -12px rgba(20, 22, 28, .12);
   --shadow-lg: 0 2px 4px rgba(20, 22, 28, .04), 0 18px 40px -18px rgba(15, 26, 43, .28);
 
-  --font: var(--font-latin), var(--font-cjk), "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
-  --display: var(--font-display), "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
+  --font: "jf-openhuninn", "jf open 粉圓 2.1", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+  --display: var(--font);
 }
 
 * { box-sizing: border-box; }
@@ -282,7 +290,7 @@ button.twisty:hover { color: var(--ink); }
 .motto blockquote {
   display: inline-block; text-align: left;
   margin: 0; padding: 0; background: none; border: 0;
-  font-family: var(--font-hand), "DFKai-SB", "BiauKai", cursive;
+  font-family: var(--font);
   font-size: 24px; line-height: 1.4; letter-spacing: .03em; color: #2457a6;
 }
 .motto blockquote p { margin: 0; }
@@ -304,7 +312,7 @@ button.twisty:hover { color: var(--ink); }
 }
 .key:hover { background: #fff; border-color: var(--border); color: var(--ink); }
 .key:active { background: var(--gold-soft); }
-.key.b { font-weight: 800; } .key.i { font-style: italic; font-family: Georgia, serif; } .key.u { text-decoration: underline; } .key.s { text-decoration: line-through; }
+.key.b { font-weight: 800; } .key.i { font-style: italic; } .key.u { text-decoration: underline; } .key.s { text-decoration: line-through; }
 .key.accent { background: var(--ink); color: var(--gold-2); font-weight: 500; letter-spacing: .06em; margin-left: 2px; }
 .key.accent:hover { background: var(--ink-hover); color: #e6cf9f; border-color: transparent; }
 .tb-sep { width: 1px; height: 18px; background: var(--border-strong); margin: 0 6px; }
@@ -367,7 +375,7 @@ button.twisty:hover { color: var(--ink); }
 .page-body hr { border: 0; height: 1px; background: var(--gold-line); margin: 1.8em 0; }
 .page-body a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 3px; }
 .page-body mark { background: #fdf0b8; color: inherit; padding: 0 2px; border-radius: 2px; }
-.page-body code, .page-body pre { font-family: ui-monospace, Consolas, monospace; font-size: .88em; background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; }
+.page-body code, .page-body pre { font-family: var(--font); font-size: .88em; background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; }
 .page-body pre { padding: 12px 16px; overflow: auto; }
 .page-body table { border-collapse: collapse; margin: 1.2em 0; font-size: .95em; width: 100%; }
 .page-body td, .page-body th { border: 1px solid var(--border-strong); padding: 8px 12px; min-width: 48px; vertical-align: top; }
@@ -467,5 +475,6 @@ button.twisty:hover { color: var(--ink); }
   .add-form { flex-direction: column; }
   .toolbar { top: 58px; }
 }
+
 
 
