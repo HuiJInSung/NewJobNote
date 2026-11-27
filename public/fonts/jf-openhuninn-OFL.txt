@@ -1,0 +1,6 @@
+jf open 粉圓 (jf-openhuninn) 2.1
+Copyright (c) justfont (https://justfont.com), based on Kosugi Maru (Copyright (c) MOTOYA Co., Ltd.)
+Source: https://github.com/justfont/open-huninn-font
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+The full license text is available at https://openfontlicense.org/open-font-license-official-text/

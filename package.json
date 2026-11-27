@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "docx": "^9.16.1",
     "mongodb": "^7.9.1",
     "next": "16.4.6",
+    "puppeteer-core": "^25.19.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

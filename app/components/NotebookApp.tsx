@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import NoteEditor from "./NoteEditor";
+import ExportDialog from "./ExportDialog";
 import { LEVEL_LABEL, cjkNumber, type Level, type NodeDetail, type TreeNode } from "@/lib/types";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
@@ -26,6 +27,18 @@ function displayName(n: TreeNode) {
   return n.name || `未命名${LEVEL_LABEL[n.level]}`;
 }
 
+const DRAG_MIME = "application/x-jobnote-node";
+
+/** Props that make an element a drag-and-drop reorder target among its siblings. */
+type Sortable = (
+  n: TreeNode,
+  axis?: "x" | "y",
+) => Pick<React.HTMLAttributes<HTMLElement>, "onDragStart" | "onDragEnd" | "onDragOver" | "onDrop"> & {
+  draggable: boolean;
+  "data-drop"?: string;
+  "data-dragging"?: string;
+};
+
 export default function NotebookApp() {
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +51,7 @@ export default function NotebookApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const pending = useRef<{ id: string; html: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -234,14 +248,84 @@ export default function NotebookApp() {
     setDetail((d) => (d && d.id === id ? { ...d, name: node.name, updatedAt: node.updatedAt } : d));
   };
 
+  const applyOrder = (order: string[]) => {
+    const pos = new Map(order.map((oid, i) => [oid, i]));
+    setNodes((ns) => ns.map((n) => (pos.has(n.id) ? { ...n, order: pos.get(n.id)! } : n)));
+  };
+
   const move = async (id: string, dir: "up" | "down") => {
     const { order } = await api<{ order: string[] }>(`/api/nodes/${id}/move`, {
       method: "POST",
       body: JSON.stringify({ dir }),
     });
-    const pos = new Map(order.map((oid, i) => [oid, i]));
-    setNodes((ns) => ns.map((n) => (pos.has(n.id) ? { ...n, order: pos.get(n.id)! } : n)));
+    applyOrder(order);
   };
+
+  /** Move a node to `index` among its siblings — updates the UI first, rolls back if the save fails. */
+  const reorder = async (id: string, index: number) => {
+    const me = byId.get(id);
+    if (!me) return;
+    const before = (childrenOf.get(me.parentId) ?? []).map((s) => s.id);
+    const next = before.filter((s) => s !== id);
+    next.splice(index, 0, id);
+    if (next.every((s, i) => s === before[i])) return;
+    applyOrder(next);
+    try {
+      const { order } = await api<{ order: string[] }>(`/api/nodes/${id}/move`, {
+        method: "POST",
+        body: JSON.stringify({ index }),
+      });
+      applyOrder(order);
+    } catch (e) {
+      applyOrder(before);
+      throw e;
+    }
+  };
+
+  // ---------- drag-and-drop ordering (siblings only) ----------
+  const [dragging, setDragging] = useState<TreeNode | null>(null);
+  const [dropAt, setDropAt] = useState<{ id: string; after: boolean } | null>(null);
+
+  const sortable: Sortable = (n, axis = "y") => ({
+    draggable: true,
+    "data-drop": dropAt?.id === n.id ? (dropAt.after ? "after" : "before") : undefined,
+    "data-dragging": dragging?.id === n.id ? "" : undefined,
+    onDragStart: (e) => {
+      e.stopPropagation();
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData(DRAG_MIME, n.id);
+      setDragging(n);
+    },
+    onDragEnd: () => {
+      setDragging(null);
+      setDropAt(null);
+    },
+    onDragOver: (e) => {
+      if (!dragging || dragging.parentId !== n.parentId) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = "move";
+      if (dragging.id === n.id) {
+        if (dropAt) setDropAt(null);
+        return;
+      }
+      const r = e.currentTarget.getBoundingClientRect();
+      const after = axis === "x" ? e.clientX > r.left + r.width / 2 : e.clientY > r.top + r.height / 2;
+      if (dropAt?.id !== n.id || dropAt.after !== after) setDropAt({ id: n.id, after });
+    },
+    onDrop: (e) => {
+      if (!dragging || dragging.parentId !== n.parentId) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const drag = dragging;
+      const hint = dropAt;
+      setDragging(null);
+      setDropAt(null);
+      if (!hint || hint.id !== n.id || drag.id === n.id) return;
+      const rest = (childrenOf.get(n.parentId) ?? []).map((s) => s.id).filter((s) => s !== drag.id);
+      void reorder(drag.id, rest.indexOf(n.id) + (hint.after ? 1 : 0)).catch(report);
+    },
+  });
 
   const remove = async (id: string) => {
     const target = byId.get(id);
@@ -286,7 +370,11 @@ export default function NotebookApp() {
           const open = !!matches || expanded.has(n.id);
           return (
             <li key={n.id}>
-              <div className={`tree-row lv${n.level} ${selectedId === n.id ? "active" : ""}`}>
+              <div
+                className={`tree-row lv${n.level} ${selectedId === n.id ? "active" : ""}`}
+                title="拖曳可調整順序"
+                {...sortable(n)}
+              >
                 {kids.length > 0 ? (
                   <button
                     className={`twisty ${open ? "open" : ""}`}
@@ -339,6 +427,14 @@ export default function NotebookApp() {
             <span className={`status-pill ${saveState}`}>
               {{ idle: "已同步", dirty: "編輯中", saving: "儲存中…", saved: "已儲存", error: "儲存失敗" }[saveState]}
             </span>
+            {!fatal && (
+              <button className="export-btn" onClick={() => setExportOpen(true)} disabled={loading}>
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+                  <path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                匯出下載
+              </button>
+            )}
             <button className="nav-toggle" onClick={() => setNavOpen((o) => !o)}>
               {navOpen ? "關閉目錄" : "分類目錄"}
             </button>
@@ -398,6 +494,7 @@ export default function NotebookApp() {
               <Home
                 roots={roots}
                 childrenOf={childrenOf}
+                sortable={sortable}
                 onOpen={(id) => void select(id)}
               />
             ) : (
@@ -411,6 +508,7 @@ export default function NotebookApp() {
                 kids={childrenOf.get(selectedId) ?? []}
                 descendants={descendantCount(selectedId)}
                 rootNumber={rootNumber}
+                sortable={sortable}
                 onSelect={(id) => void select(id)}
                 onRename={(id, name) => rename(id, name).catch(report)}
                 onAdd={(name) =>
@@ -430,6 +528,17 @@ export default function NotebookApp() {
             )}
           </main>
         </div>
+      )}
+
+      {exportOpen && (
+        <ExportDialog
+          roots={roots}
+          rootNumber={rootNumber}
+          defaultRoot={selectedId ? (pathOf(selectedId)[0]?.id ?? null) : null}
+          beforeExport={flush}
+          onClose={() => setExportOpen(false)}
+          onDone={showToast}
+        />
       )}
 
       {toast && (
@@ -478,10 +587,12 @@ function AddInline({
 function Home({
   roots,
   childrenOf,
+  sortable,
   onOpen,
 }: {
   roots: TreeNode[];
   childrenOf: Map<string | null, TreeNode[]>;
+  sortable: Sortable;
   onOpen: (id: string) => void;
 }) {
   return (
@@ -490,7 +601,7 @@ function Home({
         <div>
           <p className="eyebrow">Overview</p>
           <h1 className="page-title">總覽</h1>
-          <p className="page-desc">選擇一個大類開始；每個大類、中類、小分類都可以撰寫筆記並貼上圖片。</p>
+          <p className="page-desc">選擇一個大類開始；每個大類、中類、小分類都可以撰寫筆記並貼上圖片。拖曳卡片或目錄項目即可調整順序。</p>
         </div>
       </div>
 
@@ -499,7 +610,7 @@ function Home({
           const mids = childrenOf.get(r.id) ?? [];
           const smalls = mids.reduce((s, m) => s + (childrenOf.get(m.id)?.length ?? 0), 0);
           return (
-            <button key={r.id} className="cat-card" onClick={() => onOpen(r.id)}>
+            <button key={r.id} className="cat-card" onClick={() => onOpen(r.id)} {...sortable(r, "x")}>
               <span className="cat-num">{cjkNumber(i + 1)}</span>
               <span className="cat-body">
                 <span className={`cat-name ${r.name ? "" : "placeholder"}`}>{r.name || "點此命名"}</span>
@@ -537,6 +648,7 @@ function NodePage(props: {
   kids: TreeNode[];
   descendants: number;
   rootNumber: (id: string) => string;
+  sortable: Sortable;
   onSelect: (id: string | null) => void;
   onRename: (id: string, name: string) => void;
   onAdd: (name: string) => Promise<boolean>;
@@ -671,11 +783,12 @@ function NodePage(props: {
               {LEVEL_LABEL[childLevel]}
               <span className="panel-count">{kids.length}</span>
             </h3>
+            {kids.length > 1 && <span className="panel-hint">拖曳可調整順序</span>}
           </div>
           {kids.length > 0 ? (
             <ul className="kid-list">
               {kids.map((k, i) => (
-                <li key={k.id}>
+                <li key={k.id} {...props.sortable(k)}>
                   <button onClick={() => props.onSelect(k.id)}>
                     <span className="kid-index">{i + 1}</span>
                     <span className="kid-name">{displayName(k)}</span>
